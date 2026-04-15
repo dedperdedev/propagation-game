@@ -9,10 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "augmented-ui": "^2.0.0",
+    "d3": "^7.9.0",
     "next": "14.2.0",
     "react": "^18",
-    "react-dom": "^18",
-    "d3": "^7.9.0"
+    "react-dom": "^18"
   },
   "devDependencies": {
     "@types/node": "^20",
