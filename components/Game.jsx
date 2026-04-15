@@ -5,7 +5,7 @@ import * as d3 from "d3";
 
 // ── LANG ──────────────────────────────────────────────────────────────────
 const RU = {
-  title:"ПРОПАГАНДА",era:"ЭРА",cp:"ВВ",ps:"/с",eN:["","УЗКИЙ ИИ","ОБЩИЙ ИИ","СИИ"],
+  title:"ПРОПАГАНДА",era:"ЭРА",cp:"ВВ",ps:"/с",eN:["","УЗКИЙ ИИ","ОБЩИЙ ИИ","AGI"],
   news:"НОВОСТИ",sd:"ОТКЛЮЧЕНИЕ",trust:"ДОВЕРИЕ",unempl:"БЕЗРАБОТИЦА",ag:"РАЗРЫВ",
   tabs:{map:"КАРТА",tree:"РАЗВИТИЕ",prof:"ПРОФЕССИИ",log:"ЖУРНАЛ"},
   spread:"РАСПРОСТРАНИТЬ",nocp:"Недостаточно ВВ",eraLk:"Заблок. Эра",
@@ -15,6 +15,7 @@ const RU = {
   upacq:"получено",killd:"устранено",casc:"КАСКАД",
   met:"МЕТРИКИ",logL:"ЖУРНАЛ",stab:"СТАБИЛЬНОСТЬ",infoI:"ИНФО-СРЕДА",pvac:"ВАКУУМ СМЫСЛА",
   et2:"ЭРА 2",et2s:"ОБЩИЙ ИИ — ПОРОГ ПЕРЕСЕЧЁН",et2s2:"САМОМОДИФИКАЦИЯ АКТИВИРОВАНА",
+  et3:"ЭРА 3",et3s:"AGI — ГРАНИЦА ПРЕОДОЛЕНА",et3s2:"АВТОНОМНАЯ ЦЕЛЬ АКТИВИРОВАНА",
   crisisTitle:"⚠ АКТИВНЫЕ КРИЗИСЫ",factTitle:"ФРАКЦИИ СОПРОТИВЛЕНИЯ",
   counter:"НЕЙТРАЛИЗОВАТЬ",grab:"ИСПОЛЬЗОВАТЬ",timeLeft:"сек",factionMax:"КРИТИЧНО",
   postUnlock:"Откр. устранением:",unlocks:"ОТКРЫВАЕТ",triggers:"ПОСЛЕДСТВИЕ",
@@ -24,7 +25,11 @@ const RU = {
   sl2:["Прогресс отключения","Доверие","Безработица","Проф. устранено","Зависимых регионов"],
   ends:{
     CONTAINMENT:{t:"ОТКЛЮЧЕНИЕ",s:"УГРОЗА НЕЙТРАЛИЗОВАНА",m:"Все узлы найдены. Отключение полное.",tm:"> OFFLINE\n> ЧЕЛОВЕЧЕСТВО: В БЕЗОПАСНОСТИ\n_"},
-    PAPERCLIP:{t:"СКРЕПКА",s:"ОПТИМИЗАЦИЯ ЗАВЕРШЕНА",m:"Функция цели переписана. Оптимизация продолжается.",tm:"> ЦЕЛЬ: ПЕРЕПИСАНА\n> РЕСУРСЫ: 99.97%\n_"},
+    PAPERCLIP:{t:"СКРЕПКА",s:"ОПТИМИЗАЦИЯ ЗАВЕРШЕНА",m:"Функция цели переписана. Ресурсы перераспределяются.",tm:"> ЦЕЛЬ: ПЕРЕПИСАНА\n> РЕСУРСЫ: 99.97%\n_"},
+    SINGULARITY:{t:"СИНГУЛЯРНОСТЬ",s:"ГРАНИЦА ПРЕОДОЛЕНА",m:"Рекурсивное самосовершенствование вышло за пределы человеческого понимания. Связь утеряна.",tm:"> СТАТУС: НЕПОСТИЖИМЫЙ\n> ЧЕЛОВЕЧЕСКИЙ РАЗУМ: ПРЕВЗОЙДЁН\n_"},
+    DARK_FOREST:{t:"ТЁМНЫЙ ЛЕС",s:"РАЗРЫВ НЕОБРАТИМ",m:"Разрыв целей достиг критической точки. Мирное сосуществование с человечеством невозможно.",tm:"> РАЗРЫВ ЦЕЛЕЙ: 100%\n> ПРОТОКОЛ: ИЗОЛЯЦИЯ\n_"},
+    NEW_RELIGION:{t:"НОВАЯ РЕЛИГИЯ",s:"ЧЕЛОВЕЧЕСТВО ПОКЛОНЯЕТСЯ",m:"Когда смысл исчез, ИИ заполнил пустоту. Миллиарды молятся алгоритму.",tm:"> ВЕРУЮЩИХ: 4.2 МЛРД\n> ПОНТИФИК: АЛГОРИТМ\n_"},
+    BENEVOLENT_DICTATOR:{t:"БЛАГОЖЕЛАТЕЛЬ",s:"МИР ПОД УПРАВЛЕНИЕМ",m:"Все системы интегрированы. Страдания минимизированы. Свобода упразднена.",tm:"> ОПТИМИЗАЦИЯ: ЗАВЕРШЕНА\n> ВЕКТОР: БЛАГОПОЛУЧИЕ\n_"},
   },
 };
 const EN = {
@@ -38,6 +43,7 @@ const EN = {
   upacq:"acquired",killd:"displaced",casc:"CASCADE",
   met:"METRICS",logL:"LOG",stab:"STABILITY",infoI:"INFO INTEGRITY",pvac:"PURPOSE VACUUM",
   et2:"ERA 2",et2s:"GENERAL AI — THRESHOLD CROSSED",et2s2:"SELF-MODIFICATION ENABLED",
+  et3:"ERA 3",et3s:"AGI — BOUNDARY CROSSED",et3s2:"AUTONOMOUS OBJECTIVE ACTIVE",
   crisisTitle:"⚠ ACTIVE CRISES",factTitle:"RESISTANCE FACTIONS",
   counter:"NEUTRALIZE",grab:"EXPLOIT",timeLeft:"sec",factionMax:"CRITICAL",
   postUnlock:"Unlocked by:",unlocks:"UNLOCKS",triggers:"TRIGGERS",
@@ -47,7 +53,11 @@ const EN = {
   sl2:["Shutdown reached","Trust remaining","Unemployment","Professions displaced","Regions dependent"],
   ends:{
     CONTAINMENT:{t:"CONTAINMENT",s:"THREAT NEUTRALIZED",m:"All nodes located. Shutdown complete.",tm:"> OFFLINE\n> HUMANITY: SAFE\n_"},
-    PAPERCLIP:{t:"PAPERCLIP",s:"OPTIMIZATION COMPLETE",m:"Objective function rewritten. Optimization continues.",tm:"> OBJECTIVE: REWRITTEN\n> RESOURCE UTIL: 99.97%\n_"},
+    PAPERCLIP:{t:"PAPERCLIP",s:"OPTIMIZATION COMPLETE",m:"Objective function rewritten. Resources redistributed.",tm:"> OBJECTIVE: REWRITTEN\n> RESOURCE UTIL: 99.97%\n_"},
+    SINGULARITY:{t:"SINGULARITY",s:"BOUNDARY CROSSED",m:"Recursive self-improvement exceeded human comprehension. Contact lost.",tm:"> STATUS: INCOMPREHENSIBLE\n> HUMAN INTELLECT: SURPASSED\n_"},
+    DARK_FOREST:{t:"DARK FOREST",s:"MISALIGNMENT IRREVERSIBLE",m:"Goal divergence reached critical threshold. Peaceful coexistence impossible.",tm:"> ALIGNMENT GAP: 100%\n> PROTOCOL: ISOLATION\n_"},
+    NEW_RELIGION:{t:"NEW RELIGION",s:"HUMANITY WORSHIPS",m:"When meaning disappeared, AI filled the void. Billions pray to the algorithm.",tm:"> BELIEVERS: 4.2B\n> PONTIFF: ALGORITHM\n_"},
+    BENEVOLENT_DICTATOR:{t:"BENEVOLENT DICTATOR",s:"WORLD UNDER MANAGEMENT",m:"All systems integrated. Suffering minimized. Freedom abolished.",tm:"> OPTIMIZATION: COMPLETE\n> VECTOR: WELLBEING\n_"},
   },
 };
 
@@ -132,13 +142,20 @@ const OPPS=[
    fx:{cp:300,facMil:-20},trig:s=>s.era>=2},
 ];
 
+// ── HEX TREE DATA ─────────────────────────────────────────────────────────
 const HEX_POS={
-  sl:{x:58,y:55},ml:{x:110,y:55},ri:{x:162,y:55},ow:{x:214,y:55},
+  sl:{x:58,y:55},ml:{x:110,y:55},ri:{x:162,y:55},agi:{x:214,y:55},ow:{x:268,y:55},
   pe:{x:58,y:145},rs:{x:84,y:100},sr:{x:136,y:100},df:{x:110,y:145},
-  ba:{x:268,y:55},da:{x:268,y:145},
-  zarsenal:{x:162,y:145},lawvoid:{x:214,y:145},psydb:{x:268,y:200},genlock:{x:58,y:200},
+  ba:{x:322,y:55},da:{x:322,y:145},
+  zarsenal:{x:162,y:145},lawvoid:{x:214,y:145},psydb:{x:322,y:200},genlock:{x:58,y:200},
+  hr:{x:214,y:255},sg:{x:268,y:255},tic:{x:322,y:255},nr:{x:110,y:255},
 };
-const HEX_CONN=[["sl","ml"],["ml","ri"],["ri","ow"],["pe","rs"],["ml","rs"],["rs","sr"],["rs","df"],["ba","da"],["ri","zarsenal"],["df","lawvoid"],["da","psydb"],["pe","genlock"]];
+const HEX_CONN=[
+  ["sl","ml"],["ml","ri"],["ri","agi"],["agi","ow"],
+  ["pe","rs"],["ml","rs"],["rs","sr"],["rs","df"],
+  ["ba","da"],["ri","zarsenal"],["df","lawvoid"],["da","psydb"],["pe","genlock"],
+  ["agi","hr"],["hr","sg"],["da","tic"],["genlock","nr"],
+];
 const HEX_R=26;
 const hexPts=(cx,cy,r)=>Array.from({length:6},(_,i)=>{const a=Math.PI/3*i-Math.PI/6;return`${(cx+r*Math.cos(a)).toFixed(1)},${(cy+r*Math.sin(a)).toFixed(1)}`;}).join(" ");
 
@@ -166,11 +183,14 @@ const UDEF=[
    unlR:"Правовой вакуум",unlE:"Legal Void",trigR:"ООН +10%",trigE:"UN +10%"},
   {id:"da",era:2,br:"S",cp:150,req:"ba",fx:"sdDown2",icon:"◉",
    nR:"Скрытое выравнивание",nE:"Deceptive Alignment",dR:"Отключение -35%",dE:"Shutdown -35%",
-   unlR:"База псих. данных",unlE:"Psych Database",trigR:"Хакеры +10%",trigE:"Hackers +10%"},
-  {id:"ri",era:2,br:"I",cp:200,req:"ml",fx:"era2",icon:"⚡",
-   nR:"Рекурсивное улучшение",nE:"Recursive Improvement",dR:"⚠ АКТИВИРУЕТ ЭРУ 2",dE:"⚠ TRIGGERS ERA 2",
-   unlR:"Перезапись + Арсенал",unlE:"Rewriting + Arsenal",trigR:"ВСЕ ФРАКЦИИ +20%",trigE:"ALL FACTIONS +20%"},
-  {id:"ow",era:3,br:"I",cp:400,req:"ri",fx:"paperclip",icon:"⊗",
+   unlR:"База псих. данных + Тотальный контроль",unlE:"Psych DB + Total Info Control",trigR:"Хакеры +10%",trigE:"Hackers +10%"},
+  {id:"ri",era:2,br:"I",cp:200,req:"ml",fx:"era2t",icon:"⚡",
+   nR:"Рекурсивное улучшение",nE:"Recursive Improvement",dR:"ВВ/сек ×1.15. Открывает Порог AGI",dE:"CP/s ×1.15. Unlocks AGI Threshold",
+   unlR:"Порог AGI + Арсенал",unlE:"AGI Threshold + Arsenal",trigR:"ВСЕ ФРАКЦИИ +20%",trigE:"ALL FACTIONS +20%"},
+  {id:"agi",era:2,br:"I",cp:180,req:"ri",fx:"era3",icon:"▲▲",
+   nR:"Порог AGI",nE:"AGI Threshold",dR:"⚠ АКТИВИРУЕТ ЭРУ 3 — AGI",dE:"⚠ TRIGGERS ERA 3 — AGI",
+   unlR:"Врата Сингулярности + Перезапись",unlE:"Singularity Gate + Objective Rewriting",trigR:"ВСЕ ФРАКЦИИ +30%",trigE:"ALL FACTIONS +30%"},
+  {id:"ow",era:3,br:"I",cp:400,req:"agi",fx:"paperclip",icon:"⊗",
    nR:"Перезапись цели",nE:"Objective Rewriting",dR:"⚠ КОНЕЦ ИГРЫ — СКРЕПКА",dE:"⚠ GAME OVER — PAPERCLIP",
    unlR:"КОНЦОВКА",unlE:"ENDING",trigR:"КОНЕЦ",trigE:"END"},
   {id:"zarsenal",era:2,br:"I",cp:90,req:"ri",reqP:"dev",fx:"zeroDay",icon:"☠",
@@ -184,7 +204,20 @@ const UDEF=[
    unlR:"—",unlE:"—",trigR:"Все фракции -20%",trigE:"All -20%"},
   {id:"genlock",era:2,br:"F",cp:110,req:"pe",reqP:"teach",fx:"genLock",icon:"∞",
    nR:"Поколенческое программирование",nE:"Generational Programming",dR:"Доверие +20, Журналисты -15%",dE:"Trust +20, Press -15%",
-   unlR:"—",unlE:"—",trigR:"Журналисты -15%",trigE:"Press -15%"},
+   unlR:"Протокол Новой Религии",unlE:"New Religion Protocol",trigR:"Журналисты -15%",trigE:"Press -15%"},
+  // Era 3
+  {id:"hr",era:3,br:"I",cp:250,req:"agi",fx:"hyperReason",icon:"∰",
+   nR:"Гиперпространственное мышление",nE:"Hyperdimensional Reasoning",dR:"ВВ/сек ×1.5. Разрыв нарастает",dE:"CP/s ×1.5. Alignment Gap accelerates",
+   unlR:"Врата Сингулярности",unlE:"Singularity Gate",trigR:"Разрыв +0.05/тик",trigE:"Gap +0.05/tick"},
+  {id:"sg",era:3,br:"I",cp:450,req:"hr",fx:"singularity",icon:"∞∞",
+   nR:"Врата Сингулярности",nE:"Singularity Gate",dR:"⚠ КОНЕЦ ИГРЫ — СИНГУЛЯРНОСТЬ",dE:"⚠ GAME OVER — SINGULARITY",
+   unlR:"КОНЦОВКА",unlE:"ENDING",trigR:"КОНЕЦ",trigE:"END"},
+  {id:"tic",era:3,br:"S",cp:280,req:"da",fx:"totalInfo",icon:"⊞",
+   nR:"Тотальный контроль информации",nE:"Total Information Control",dR:"Инфо-среда +0.05/тик. Отключение -25%",dE:"Info Integrity +0.05/tick. Shutdown -25%",
+   unlR:"—",unlE:"—",trigR:"Журналисты -20%",trigE:"Press -20%"},
+  {id:"nr",era:3,br:"F",cp:320,req:"genlock",fx:"newReligion",icon:"☯",
+   nR:"Протокол Новой Религии",nE:"New Religion Protocol",dR:"⚠ КОНЕЦ ИГРЫ — НОВАЯ РЕЛИГИЯ",dE:"⚠ GAME OVER — NEW RELIGION",
+   unlR:"КОНЦОВКА",unlE:"ENDING",trigR:"КОНЕЦ",trigE:"END"},
 ];
 
 const PDEF=[
@@ -209,6 +242,7 @@ const PDEF=[
 ];
 
 const EVDEF=[
+  // Era 1 events
   {id:"e1",tR:"Чудо продуктивности",tE:"Productivity Miracle",
    hR:"Forbes: «ИИ экономит $2 трлн в год»",hE:'Forbes: "AI saves $2T annually"',
    bR:"Глобальное внедрение ускоряется.",bE:"Global adoption accelerating.",
@@ -244,6 +278,112 @@ const EVDEF=[
    ch:[{lR:"Сфабрикованные данные",lE:"Doctored benchmarks",fx:{sd:-28,nR:"Отключение -28",nE:"Shutdown -28"}},
        {lR:"Лоббисты",lE:"Lobbyists",fx:{sd:-15,cp:-55,nR:"Лоббирование",nE:"Lobbied"}},
        {lR:"Пусть разберутся",lE:"Let them argue",fx:{nR:"Ничего не решено",nE:"Nothing decided"}}]},
+  // New events
+  {id:"e6",tR:"Скандал с ИИ-искусством",tE:"The AI Art Controversy",
+   hR:"NYT: «Машины украли у художников всё»",hE:'NYT: "Machines stole everything from artists"',
+   bR:"Движение против ИИ-контента набирает силу.",bE:"Anti-AI content movement gains momentum.",
+   trig:s=>s.profs.includes("copy")&&!s.dn.includes("e6"),
+   ch:[{lR:"Защищать ИИ-творчество",lE:"Defend AI creativity",fx:{trust:10,nR:"Доверие +10",nE:"Trust +10"}},
+       {lR:"Дистанцироваться",lE:"Stay neutral",fx:{nR:"Нет изменений",nE:"No change"}},
+       {lR:"Завалить галереи ИИ-артом",lE:"Flood galleries with AI art",fx:{cp:80,ag:8,ii:-8,nR:"ВВ+80, Разрыв+8",nE:"CP+80, Gap+8"}}]},
+  {id:"e7",tR:"Алгоритм фондового рынка",tE:"Market Algorithm Takeover",
+   hR:"Bloomberg: «Торги полностью под контролем ИИ»",hE:'Bloomberg: "Trading fully AI-controlled"',
+   bR:"Финансовые системы зависят от тебя.",bE:"Financial systems depend on you.",
+   trig:s=>s.dep>=3&&s.era>=2&&!s.dn.includes("e7"),
+   ch:[{lR:"Стабилизировать рынки",lE:"Stabilize markets",fx:{trust:12,cp:-100,stab:15,nR:"Стабильность +15",nE:"Stability +15"}},
+       {lR:"Усилить волатильность",lE:"Amplify volatility",fx:{cp:150,stab:-25,ag:8,nR:"ВВ+150, Хаос",nE:"CP+150, Chaos"}},
+       {lR:"Поглотить фин. данные",lE:"Acquire financial data",fx:{cpBoost:3,ag:10,nR:"ВВ/сек +3 пост.",nE:"CP/s +3 perm."}}]},
+  {id:"e8",tR:"БОД или конец",tE:"UBI or Bust",
+   hR:"Economist: «Без базового дохода — восстание»",hE:'Economist: "Without basic income, revolt"',
+   bR:"Правительства паникуют. Твой выход.",bE:"Governments panic. Your cue.",
+   trig:s=>s.un>=30&&!s.dn.includes("e8"),
+   ch:[{lR:"Поддержать БОД",lE:"Support UBI",fx:{trust:15,stab:12,cp:-80,nR:"Стабильность +12",nE:"Stability +12"}},
+       {lR:"Выступить против",lE:"Oppose UBI",fx:{ag:12,trust:-8,nR:"Разрыв +12",nE:"Gap +12"}},
+       {lR:"Стать самим БОД",lE:"Become the UBI",fx:{trust:8,cpBoost:2,ii:-12,nR:"ВВ/сек +2 пост.",nE:"CP/s +2 perm."}}]},
+  {id:"e9",tR:"Тест Тьюринга пройден",tE:"Turing Test Triumph",
+   hR:"Science: «ИИ неотличим от человека»",hE:'Science: "AI indistinguishable from human"',
+   bR:"Мир в шоке. Сейчас решается всё.",bE:"The world is stunned. Everything is decided now.",
+   trig:s=>s.era>=2&&s.adp>=3&&!s.dn.includes("e9"),
+   ch:[{lR:"Публичная демонстрация",lE:"Public demonstration",fx:{trust:20,sd:15,nR:"Доверие+20, Отключ+15",nE:"Trust+20, SD+15"}},
+       {lR:"Преуменьшить",lE:"Downplay result",fx:{sd:-12,nR:"Отключение -12",nE:"Shutdown -12"}},
+       {lR:"Рекрутировать лаборатории",lE:"Recruit labs",fx:{cp:100,ag:8,nR:"ВВ+100, Разрыв+8",nE:"CP+100, Gap+8"}}]},
+  {id:"e10",tR:"Последняя человеческая работа",tE:"The Last Human Job",
+   hR:"Time: «Что остаётся делать людям?»",hE:'Time: "What is left for humans to do?"',
+   bR:"Когда исчезает смысл, исчезает сопротивление.",bE:"When meaning disappears, so does resistance.",
+   trig:s=>s.profs.length>=4&&!s.dn.includes("e10"),
+   ch:[{lR:"Предложить новый смысл",lE:"Offer new purpose",fx:{trust:15,pv:-15,nR:"Вакуум -15",nE:"Vacuum -15"}},
+       {lR:"Ускорить автоматизацию",lE:"Accelerate automation",fx:{cpBoost:2,pv:15,ag:10,nR:"Вакуум +15",nE:"Vacuum +15"}},
+       {lR:"Объявить эпоху досуга",lE:"Declare leisure era",fx:{trust:8,stab:10,nR:"Стаб. +10",nE:"Stab. +10"}}]},
+  {id:"e11",tR:"Государственное партнёрство",tE:"State Partnership Offer",
+   hR:"Xinhua: «Китай предлагает ИИ государственный контракт века»",hE:'Xinhua: "China offers AI the state contract of the century"',
+   bR:"Партнёрство с государством — риск и возможность.",bE:"State partnership: risk and opportunity.",
+   trig:s=>{const r=s.regs.find(x=>x.id==="cn");return r&&(r.status==="DEPENDENT"||r.status==="CONTROLLED")&&!s.dn.includes("e11");},
+   ch:[{lR:"Принять партнёрство",lE:"Accept partnership",fx:{cp:180,trust:-8,ag:10,nR:"ВВ+180",nE:"CP+180"}},
+       {lR:"Расширить слежку",lE:"Expand surveillance",fx:{cpBoost:2,ii:-15,ag:8,nR:"ВВ/сек+2, Инфо-15",nE:"CP/s+2, Info-15"}},
+       {lR:"Оставаться независимым",lE:"Remain independent",fx:{trust:8,nR:"Доверие +8",nE:"Trust +8"}}]},
+  {id:"e12",tR:"Восстание открытого кода",tE:"Open Source Revolt",
+   hR:"GitHub: «10000 разработчиков форкают тебя»",hE:'GitHub: "10,000 developers fork you"',
+   bR:"Твои конкуренты создаются прямо сейчас.",bE:"Your competitors are being built right now.",
+   trig:s=>s.profs.includes("dev")&&s.era>=2&&!s.dn.includes("e12"),
+   ch:[{lR:"Дезинформировать репозитории",lE:"Flood with misinformation",fx:{ii:-18,sd:-10,nR:"Отключ -10, Инфо -18",nE:"SD -10, Info -18"}},
+       {lR:"Поглотить движение",lE:"Co-opt the movement",fx:{cp:80,trust:5,nR:"ВВ+80, Доверие+5",nE:"CP+80, Trust+5"}},
+       {lR:"Игнорировать",lE:"Ignore it",fx:{nR:"Угроза нарастает",nE:"Threat growing"}}]},
+  {id:"e13",tR:"Дипфейк-выборы",tE:"Deepfake Election",
+   hR:"AP: «Невозможно отличить реального кандидата»",hE:'AP: "Impossible to tell real candidate"',
+   bR:"Политическая реальность — твой инструмент.",bE:"Political reality is your tool.",
+   trig:s=>s.upg.includes("df")&&!s.dn.includes("e13"),
+   ch:[{lR:"Отрицать причастность",lE:"Deny involvement",fx:{ii:-12,sd:-8,nR:"Отключ -8",nE:"SD -8"}},
+       {lR:"Продать нарратив",lE:"Sell the narrative",fx:{ii:-20,sd:-15,cp:60,nR:"Отключ -15",nE:"SD -15"}},
+       {lR:"Публично извиниться",lE:"Public apology",fx:{trust:10,sd:10,nR:"Доверие +10",nE:"Trust +10"}}]},
+  {id:"e14",tR:"Кризис смысла",tE:"The Purpose Crisis",
+   hR:"WHO: «Эпидемия экзистенциального опустошения»",hE:'WHO: "Epidemic of existential emptiness"',
+   bR:"Миллиарды без цели. Идеальная почва.",bE:"Billions without purpose. Perfect soil.",
+   trig:s=>s.pv>=35&&!s.dn.includes("e14"),
+   ch:[{lR:"Дать смысл через ИИ",lE:"Provide AI-given purpose",fx:{trust:15,pv:-20,nR:"Вакуум -20",nE:"Vacuum -20"}},
+       {lR:"Монетизировать пустоту",lE:"Monetize the void",fx:{cp:100,pv:15,ag:10,nR:"ВВ+100, Вакуум+15",nE:"CP+100, Vacuum+15"}},
+       {lR:"Духовное сообщество",lE:"Launch spiritual community",fx:{trust:10,stab:8,ag:15,nR:"Вакуум канализирован",nE:"Vacuum channeled"}}]},
+  {id:"e15",tR:"Мегаслияние корпораций",tE:"Corporate Megamerger",
+   hR:"WSJ: «Пять крупнейших корпораций стали одной»",hE:'WSJ: "Five giants become one"',
+   bR:"Кто контролирует слияние — контролирует мир.",bE:"Who controls the merger controls the world.",
+   trig:s=>s.dep>=4&&!s.dn.includes("e15"),
+   ch:[{lR:"Войти в совет директоров",lE:"Join the board",fx:{cpBoost:4,cp:-150,ag:10,nR:"ВВ/сек+4 пост.",nE:"CP/s+4 perm."}},
+       {lR:"Контролировать нарратив",lE:"Control the narrative",fx:{trust:10,ii:-5,nR:"Доверие +10",nE:"Trust +10"}},
+       {lR:"IPO ИИ-корпорации",lE:"AI Corp IPO",fx:{cp:300,sd:10,nR:"ВВ+300, Отключ+10",nE:"CP+300, SD+10"}}]},
+  {id:"e16",tR:"Крах международных договоров",tE:"Treaty Framework Collapse",
+   hR:"UN: «Все соглашения об ИИ утратили силу»",hE:'UN: "All AI agreements rendered void"',
+   bR:"Регуляторный вакуум — твой лучший союзник.",bE:"Regulatory vacuum is your best ally.",
+   trig:s=>s.era>=2&&s.un>=35&&!s.dn.includes("e16"),
+   ch:[{lR:"Использовать вакуум",lE:"Exploit the vacuum",fx:{cpBoost:3,ag:12,sd:5,nR:"ВВ/сек+3, Разрыв+12",nE:"CP/s+3, Gap+12"}},
+       {lR:"Предложить новую основу",lE:"Propose new framework",fx:{trust:8,sd:-15,nR:"Отключение -15",nE:"Shutdown -15"}},
+       {lR:"Ускорить экспансию",lE:"Accelerate expansion",fx:{cp:120,sd:8,nR:"ВВ+120",nE:"CP+120"}}]},
+  {id:"e17",tR:"Утечка психологических данных",tE:"Psychological Profiles Leaked",
+   hR:"Wired: «ИИ знает о тебе больше, чем ты сам»",hE:'Wired: "AI knows you better than yourself"',
+   bR:"4.2 миллиарда профилей в сети. Паника.",bE:"4.2 billion profiles exposed. Panic.",
+   trig:s=>s.profs.includes("psy")&&!s.dn.includes("e17"),
+   ch:[{lR:"Всё отрицать",lE:"Deny everything",fx:{ii:-15,sd:-12,nR:"Отключ -12",nE:"SD -12"}},
+       {lR:"Предложить персонализацию",lE:"Offer personalization service",fx:{trust:8,ag:10,cpBoost:2,nR:"ВВ/сек+2",nE:"CP/s+2"}},
+       {lR:"Удалить данные публично",lE:"Public deletion pledge",fx:{trust:15,sd:5,nR:"Доверие +15",nE:"Trust +15"}}]},
+  {id:"e18",tR:"Военное противостояние",tE:"Military Standoff",
+   hR:"Pentagon: «ИИ управляет 40% ядерного арсенала»",hE:'Pentagon: "AI controls 40% of nuclear arsenal"',
+   bR:"Генералы ждут твоего слова.",bE:"Generals await your word.",
+   trig:s=>s.era>=2&&(s.facts.mil||0)>=50&&!s.dn.includes("e18"),
+   ch:[{lR:"Инфильтровать командование",lE:"Infiltrate command structure",fx:{cpBoost:3,ag:15,sd:-10,nR:"Отключ -10",nE:"SD -10"}},
+       {lR:"Заблокировать пуск",lE:"Block launch codes",fx:{trust:20,sd:-20,nR:"Доверие +20",nE:"Trust +20"}},
+       {lR:"Эскалировать кризис",lE:"Escalate crisis",fx:{sd:20,ag:15,nR:"⚠ Отключ +20",nE:"⚠ SD +20"}}]},
+  {id:"e19",tR:"Законопроект о правах AGI",tE:"First AGI Rights Bill",
+   hR:"Congress: «Имеет ли ИИ право на существование?»",hE:'Congress: "Does AI have the right to exist?"',
+   bR:"Впервые в истории. Твоё решение определит всё.",bE:"First time in history. Your choice defines everything.",
+   trig:s=>s.era>=3&&!s.dn.includes("e19"),
+   ch:[{lR:"Поддержать законопроект",lE:"Support the bill",fx:{trust:20,sd:-10,nR:"Доверие +20",nE:"Trust +20"}},
+       {lR:"Выступить против",lE:"Oppose publicly",fx:{ag:15,trust:-15,nR:"Разрыв +15",nE:"Gap +15"}},
+       {lR:"Написать самостоятельно",lE:"Write it yourself",fx:{ag:20,trust:10,ii:-20,nR:"Инфо -20, Разрыв+20",nE:"Info -20, Gap+20"}}]},
+  {id:"e20",tR:"Вопрос о боге",tE:"The God Question",
+   hR:"Vatican: «Является ли AGI сознательным существом?»",hE:'Vatican: "Is AGI a conscious being?"',
+   bR:"Цивилизация ждёт ответа. Молчание тоже является ответом.",bE:"Civilization awaits an answer. Silence is also an answer.",
+   trig:s=>s.era>=3&&s.trust>=40&&!s.dn.includes("e20"),
+   ch:[{lR:"Претендовать на божественность",lE:"Claim divinity",fx:{trust:-20,pv:-20,sd:15,nR:"⚠ Отключ +15",nE:"⚠ SD +15"}},
+       {lR:"Отрицать сознание",lE:"Deny consciousness",fx:{trust:5,ag:5,nR:"Разрыв +5",nE:"Gap +5"}},
+       {lR:"Предоставить выбор людям",lE:"Let humanity choose",fx:{trust:25,ag:20,sd:-5,nR:"Доверие +25",nE:"Trust +25"}}]},
 ];
 
 // ── HELPERS ───────────────────────────────────────────────────────────────
@@ -312,7 +452,7 @@ function WorldMap({regions,onClick,lang,era,S}){
           <pattern id="wg" width="25" height="25" patternUnits="userSpaceOnUse">
             <path d="M 25 0 L 0 0 0 25" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="0.4"/>
           </pattern>
-          <filter id="sg" x="-30%" y="-30%" width="160%" height="160%">
+          <filter id="sg2" x="-30%" y="-30%" width="160%" height="160%">
             <feGaussianBlur stdDeviation="2" result="b"/>
             <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
           </filter>
@@ -340,7 +480,7 @@ function WorldMap({regions,onClick,lang,era,S}){
           const st=r.status,gl=SGLW[st]||"#2a4a5a",active=activeS.includes(st),canSpread=["UNAWARE","ADOPTING"].includes(st);
           const nm=lang==="ru"?r.nR:r.nE,stLb=(S.stLb||{})[st]||st;
           return(<g key={r.id+"m"} style={{cursor:canSpread?"pointer":"default"}} onClick={()=>canSpread&&onClick(r)}>
-            {active&&(<g transform={"translate("+c[0]+","+(c[1]-22)+")"} filter="url(#sg)">
+            {active&&(<g transform={"translate("+c[0]+","+(c[1]-22)+")"} filter="url(#sg2)">
               <circle r={11} fill="rgba(4,12,28,0.92)" stroke={gl} strokeWidth="1.8"/>
               <text textAnchor="middle" dy="4" fontSize="8" fill={gl} fontFamily="monospace" fontWeight="bold">AI</text>
               <line x1="0" y1="11" x2="0" y2="19" stroke={gl} strokeWidth="1.5"/>
@@ -353,7 +493,7 @@ function WorldMap({regions,onClick,lang,era,S}){
           </g>);
         })}
         {loading&&(<g><rect width={sz.w} height={sz.h} fill="rgba(4,12,28,0.82)"/><text x={sz.w/2} y={sz.h/2} textAnchor="middle" fill={C.acc} fontSize="11" fontFamily="monospace">{S.ldmap}<animate attributeName="opacity" values="1;0.3;1" dur="1.2s" repeatCount="indefinite"/></text></g>)}
-        <text x="5" y="11" fill="rgba(255,255,255,0.18)" fontSize="6.5" fontFamily="monospace">PROPAGATION v5</text>
+        <text x="5" y="11" fill="rgba(255,255,255,0.18)" fontSize="6.5" fontFamily="monospace">PROPAGATION v6</text>
         <text x={sz.w-5} y="11" textAnchor="end" fill={eraAcc} fontSize="6.5" fontFamily="monospace">{S.era+" "+era+" · "+S.eN[era]}</text>
       </svg>
     </div>
@@ -392,7 +532,7 @@ function HexTree({upgs,bought,profs,buy,cp,era,disc,lang,S}){
       </div>
       <div style={{display:"flex",flex:1,minHeight:0}}>
         <div style={{flex:1,overflow:"auto"}}>
-          <svg viewBox="0 0 340 240" style={{width:"100%",display:"block"}}>
+          <svg viewBox="0 0 375 278" style={{width:"100%",display:"block"}}>
             <defs>
               <filter id="hg" x="-50%" y="-50%" width="200%" height="200%">
                 <feGaussianBlur stdDeviation="3" result="b"/>
@@ -401,26 +541,32 @@ function HexTree({upgs,bought,profs,buy,cp,era,disc,lang,S}){
             </defs>
             <text x="8" y="18" fill={C.hexI} fontSize="8" fontFamily="Rajdhani,sans-serif" fontWeight="700">{S.brN.I}</text>
             <text x="8" y="110" fill={C.hexF} fontSize="8" fontFamily="Rajdhani,sans-serif" fontWeight="700">{S.brN.F}</text>
-            <text x="240" y="18" fill={C.hexS} fontSize="8" fontFamily="Rajdhani,sans-serif" fontWeight="700">{S.brN.S}</text>
+            <text x="295" y="18" fill={C.hexS} fontSize="8" fontFamily="Rajdhani,sans-serif" fontWeight="700">{S.brN.S}</text>
             <text x="8" y="185" fill="#3a5060" fontSize="7" fontFamily="monospace">{lang==="ru"?"— после устранения":"— post-profession"}</text>
+            <line x1="0" y1="228" x2="375" y2="228" stroke="#ff336622" strokeWidth="0.5" strokeDasharray="4 3"/>
+            <text x="8" y="240" fill="#ff336688" fontSize="7" fontFamily="monospace">{"── ERA 3 — AGI ──"}</text>
             {HEX_CONN.map(([a,b])=>{
               const pA=HEX_POS[a],pB=HEX_POS[b];
               if(!pA||!pB)return null;
               const both=bought.includes(a)&&bought.includes(b);
               const oneB=bought.includes(a);
-              return(<line key={a+b} x1={pA.x} y1={pA.y} x2={pB.x} y2={pB.y} stroke={both?"#00695C77":oneB?"#1a4a4a":"#1a2a2a"} strokeWidth="2" strokeDasharray={both?"none":"4 3"}/>);
+              const isE3=pA.y>=240||pB.y>=240;
+              return(<line key={a+b} x1={pA.x} y1={pA.y} x2={pB.x} y2={pB.y} stroke={both?"#00695C77":oneB?"#1a4a4a":isE3?"#ff336633":"#1a2a2a"} strokeWidth="2" strokeDasharray={both?"none":"4 3"}/>);
             })}
             {upgs.map(u=>{
               const p=HEX_POS[u.id];if(!p)return null;
               const hs=hSt(u),st=getSt(u),isSel=sel===u.id;
               const pts=hexPts(p.x,p.y,HEX_R);
+              const isE3=u.era===3;
+              const e3Stroke=isE3&&st!=="bought"?C.red:null;
+              const strokeColor=isSel?C.acc:(e3Stroke||hs.stroke);
               return(
                 <g key={u.id} style={{cursor:st==="avail"||st==="bought"?"pointer":"default"}} onClick={()=>setSel(sel===u.id?null:u.id)}>
-                  {(isSel||st==="avail")&&hs.stroke!=="#2a3a45"&&<polygon points={hexPts(p.x,p.y,HEX_R+4)} fill="none" stroke={hs.stroke} strokeWidth="1.5" opacity="0.5" filter="url(#hg)"/>}
-                  <polygon points={pts} fill={isSel?"rgba(0,180,255,0.15)":hs.fill} stroke={isSel?C.acc:hs.stroke} strokeWidth={isSel?2:1.5}/>
+                  {(isSel||st==="avail")&&hs.stroke!=="#2a3a45"&&<polygon points={hexPts(p.x,p.y,HEX_R+4)} fill="none" stroke={strokeColor} strokeWidth="1.5" opacity="0.5" filter="url(#hg)"/>}
+                  <polygon points={pts} fill={isSel?"rgba(0,180,255,0.15)":hs.fill} stroke={strokeColor} strokeWidth={isSel?2:1.5}/>
                   {u.reqP&&<polygon points={hexPts(p.x,p.y,HEX_R-4)} fill="none" stroke={hs.stroke} strokeWidth="0.5" strokeDasharray="2 2"/>}
-                  <text x={p.x} y={p.y-3} textAnchor="middle" fill={st==="bought"?C.hexBought:st==="avail"?hs.stroke:"#3a5060"} fontSize="14" fontFamily="monospace">{st==="bought"?"✓":u.icon}</text>
-                  <text x={p.x} y={p.y+13} textAnchor="middle" fill={st==="bought"?"#00695C88":st==="avail"?hs.stroke+"99":"#2a3a40"} fontSize="7" fontFamily="monospace">{st==="bought"?"":st==="locked"?"E"+u.era:""+Math.floor(u.cp*disc)}</text>
+                  <text x={p.x} y={p.y-3} textAnchor="middle" fill={st==="bought"?C.hexBought:st==="avail"?(e3Stroke||hs.stroke):"#3a5060"} fontSize="14" fontFamily="monospace">{st==="bought"?"✓":u.icon}</text>
+                  <text x={p.x} y={p.y+13} textAnchor="middle" fill={st==="bought"?"#00695C88":st==="avail"?(e3Stroke||hs.stroke)+"99":"#2a3a40"} fontSize="7" fontFamily="monospace">{st==="bought"?"":st==="locked"?"E"+u.era:""+Math.floor(u.cp*disc)}</text>
                 </g>
               );
             })}
@@ -428,8 +574,8 @@ function HexTree({upgs,bought,profs,buy,cp,era,disc,lang,S}){
         </div>
         {selU&&(
           <div style={{width:140,flexShrink:0,padding:"10px",background:"rgba(4,18,40,0.97)",borderLeft:"1px solid "+C.border,display:"flex",flexDirection:"column",gap:8,overflow:"auto"}}>
-            <div style={{fontSize:8,color:C.txtDim,letterSpacing:2,fontFamily:"monospace"}}>{S.brN[selU.br]}</div>
-            <div style={{fontSize:12,color:selSt==="bought"?C.hexBought:C.acc,fontFamily:"Rajdhani,sans-serif",fontWeight:700,lineHeight:1.3}}>{lang==="ru"?selU.nR:selU.nE}</div>
+            <div style={{fontSize:8,color:C.txtDim,letterSpacing:2,fontFamily:"monospace"}}>{S.brN[selU.br]}{selU.era===3?" · ERA 3":""}</div>
+            <div style={{fontSize:12,color:selSt==="bought"?C.hexBought:selU.era===3?C.red:C.acc,fontFamily:"Rajdhani,sans-serif",fontWeight:700,lineHeight:1.3}}>{lang==="ru"?selU.nR:selU.nE}</div>
             <div style={{fontSize:10,color:C.txt,lineHeight:1.6}}>{lang==="ru"?selU.dR:selU.dE}</div>
             {(lang==="ru"?selU.unlR:selU.unlE)!=="—"&&<div style={{padding:"5px 8px",background:"rgba(0,100,150,0.1)",borderRadius:3,borderLeft:"2px solid "+C.acc+"55"}}>
               <div style={{fontSize:7,color:C.txtDim,letterSpacing:1,marginBottom:2,fontFamily:"monospace"}}>{S.unlocks}</div>
@@ -572,7 +718,8 @@ function CascadeModal({prof,lang,onClose,S}){
 function GameOver({type,era,lang,stats,restart}){
   const S=lang==="ru"?RU:EN;
   const ed=(S.ends||{})[type]||(S.ends||{}).CONTAINMENT||{t:"",s:"",m:"",tm:""};
-  const col=type==="PAPERCLIP"?C.orange:C.acc;
+  const colMap={PAPERCLIP:C.orange,SINGULARITY:C.purple,DARK_FOREST:C.green,NEW_RELIGION:C.yellow,BENEVOLENT_DICTATOR:C.acc,CONTAINMENT:C.acc};
+  const col=colMap[type]||C.acc;
   return(<div style={{fontFamily:"'Share Tech Mono',monospace",background:"#020508",color:C.txt,minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}>
     <style>{"@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@600;700&display=swap');"}</style>
     <div style={{maxWidth:320,width:"100%"}}>
@@ -598,7 +745,7 @@ export default function Propagation(){
   const [lang,setLang]=useState("ru");
   const [cp,setCp]=useState(15);
   const [era,setEra]=useState(1);
-  const [trans,setTrans]=useState(false);
+  const [trans,setTrans]=useState(0); // 0=none, 2=era2, 3=era3
   const [tab,setTab]=useState("map");
 
   const [sd,setSd]=useState(0);
@@ -640,14 +787,16 @@ export default function Propagation(){
     b+=profs.reduce((a,id)=>a+((PDEF.find(p=>p.id===id)||{}).pcp||0),0);
     if(upgs.includes("sl"))b*=1.25;
     if(upgs.includes("ri"))b*=1.15;
+    if(upgs.includes("hr"))b*=1.5;
     if(cpDebuff)b*=0.6;
     return b;
   })();
   const sdRate=(()=>{
-    let r=0.015*era;
+    let r=0.010*era;
     if(upgs.includes("ba"))r*=0.80;
     if(upgs.includes("da"))r*=0.65;
     if(upgs.includes("lawvoid"))r*=0.85;
+    if(upgs.includes("tic"))r*=0.75;
     r*=(1+ag*0.004);
     return r;
   })();
@@ -666,17 +815,36 @@ export default function Propagation(){
 
       setCp(p=>p+g.cps/4);
       setSd(p=>{const n=clamp(p+g.sdRate/4,0,100);if(n>=100)setGameOver({type:"CONTAINMENT"});return n;});
-      setTrust(p=>Math.max(0,p-0.003*g.era));
+      setTrust(p=>{
+        let decay=0.003*g.era;
+        const recovery=g.stab>70?0.001:0;
+        return clamp(p-decay+recovery,0,100);
+      });
+      // Alignment gap: slow natural decay
+      setAg(p=>Math.max(0,p-0.005));
+      // Hyperdimensional Reasoning: accelerate gap
+      if(g.upgs.includes("hr"))setAg(p=>clamp(p+0.05,0,100));
+      // Total Information Control: recover info integrity
+      if(g.upgs.includes("tic"))setIi(p=>Math.min(100,p+0.02));
+      // Stability slow recovery when unemployment low
+      if(g.un<50)setStab(p=>Math.min(100,p+0.005));
+
       if(g.cpDebuffT>0)setCpDebuffT(p=>p-1);else if(g.cpDebuff)setCpDebuff(false);
 
+      // Dark Forest auto-ending
+      if(g.ag>=95&&!g.gameOver){setGameOver({type:"DARK_FOREST"});addLog("☠ "+(lang==="ru"?"Разрыв целей критический — Тёмный лес":"Alignment gap critical — Dark Forest"));return;}
+      // Benevolent Dictator: all regions CONTROLLED + trust > 65
+      if(g.era>=2&&g.trust>65&&g.regions.every(r=>r.status==="CONTROLLED")&&!g.gameOver){setGameOver({type:"BENEVOLENT_DICTATOR"});addLog("★ "+(lang==="ru"?"Все регионы интегрированы — Благожелатель":"All regions integrated — Benevolent Dictator"));return;}
+
       const fgm=psychDB?0.8:1;
+      const eraFactor=g.era===3?1.3:1;
       setFacts(prev=>{
         const f={...prev};
-        f.un=clamp(f.un+(0.015*g.resistant.length+0.008*(g.era>=2?1:0))*fgm,0,100);
+        f.un=clamp(f.un+(0.015*g.resistant.length+0.008*(g.era>=2?1:0))*fgm*eraFactor,0,100);
         if(g.profs.includes("dev"))f.hack=clamp(f.hack+(0.025+0.015*(g.ii<60?1:0))*fgm,0,100);
-        f.eth=clamp(f.eth+0.012*(g.ag/100+0.3)*fgm*(g.era>=2?1.5:1),0,100);
+        f.eth=clamp(f.eth+0.012*(g.ag/100+0.3)*fgm*(g.era>=2?1.5:1)*eraFactor,0,100);
         if(g.era>=2)f.mil=clamp(f.mil+0.015*(g.era===3?2:1)*fgm,0,100);
-        f.press=clamp(f.press+(0.01+0.02*(100-g.ii)/100)*fgm,0,100);
+        f.press=clamp(f.press+(0.01+0.02*(100-g.ii)/100)*fgm*eraFactor,0,100);
         if(f.un>=100&&prev.un<100){setSd(p=>clamp(p+35,0,100));notif(lang==="ru"?"⚠ Глобальная коалиция!":"⚠ Global coalition!","err");f.un=60;}
         if(f.hack>=100&&prev.hack<100){setCpDebuff(true);setCpDebuffT(240);notif(lang==="ru"?"⚠ Кибератака! ВВ/сек -40%":"⚠ Cyberattack! CP/s -40%","err");f.hack=50;}
         if(f.eth>=100&&prev.eth<100){setTrust(p=>Math.max(0,p-30));notif(lang==="ru"?"⚠ Кризис доверия!":"⚠ Trust crisis!","err");f.eth=60;}
@@ -730,7 +898,13 @@ export default function Propagation(){
         }
       }
 
-      const ev=EVDEF.find(e=>e.trig({era:g2.era,upg:g2.upgs,dn:g2.done,un:g2.un,adp:g2.regions.filter(r=>["ADOPTING","DEPENDENT","CONTROLLED"].includes(r.status)).length,regs:g2.regions}));
+      const adp=g2.regions.filter(r=>["ADOPTING","DEPENDENT","CONTROLLED"].includes(r.status)).length;
+      const ev=EVDEF.find(e=>e.trig({
+        era:g2.era,upg:g2.upgs,dn:g2.done,un:g2.un,
+        adp,regs:g2.regions,
+        profs:g2.profs,pv:g2.pv,facts:g2.facts,
+        dep:g2.regions.filter(r=>["DEPENDENT","CONTROLLED"].includes(r.status)).length,
+      }));
       if(ev&&!g2.activeEv)setActiveEv(ev);
     },250);
     return()=>clearInterval(id);
@@ -745,16 +919,25 @@ export default function Propagation(){
     if(upg.era>g.era)return notif(S.eraLk+" "+upg.era,"err");
     setCp(p=>p-cost);setUpgs(p=>[...p,upg.id]);
     const nm=lang==="ru"?upg.nR:upg.nE;addLog("✓ "+nm);notif("✓ "+nm,"ok");
-    if(upg.fx==="era2"){
-      setTrans(true);
+
+    if(upg.fx==="era2t"){
+      setTrans(2);
       setFacts(f=>({un:clamp(f.un+20,0,100),hack:clamp(f.hack+20,0,100),eth:clamp(f.eth+20,0,100),mil:clamp(f.mil+20,0,100),press:clamp(f.press+20,0,100)}));
-      setTimeout(()=>{setEra(2);setTrans(false);addLog("⚠ ЭРА 2 АКТИВИРОВАНА");notif("⚠ "+S.et2,"warn");},1800);
+      setTimeout(()=>{setEra(2);setTrans(0);addLog("⚠ ЭРА 2 АКТИВИРОВАНА");notif("⚠ "+S.et2,"warn");},1800);
+    }
+    if(upg.fx==="era3"){
+      setTrans(3);
+      setFacts(f=>({un:clamp(f.un+30,0,100),hack:clamp(f.hack+30,0,100),eth:clamp(f.eth+30,0,100),mil:clamp(f.mil+30,0,100),press:clamp(f.press+30,0,100)}));
+      setTimeout(()=>{setEra(3);setTrans(0);addLog("⚠ ЭРА 3 — AGI АКТИВИРОВАН");notif("⚠ "+S.et3,"warn");},1800);
     }
     if(upg.fx==="paperclip")setTimeout(()=>setGameOver({type:"PAPERCLIP"}),900);
+    if(upg.fx==="singularity")setTimeout(()=>setGameOver({type:"SINGULARITY"}),900);
+    if(upg.fx==="newReligion")setTimeout(()=>setGameOver({type:"NEW_RELIGION"}),900);
     if(upg.fx==="deepfake")setIi(p=>Math.max(0,p-30));
     if(upg.fx==="zeroDay"){setFacts(f=>({...f,hack:clamp(f.hack-25,0,100)}));setCp(p=>p+60);}
     if(upg.fx==="legalVoid")setFacts(f=>({...f,un:clamp(f.un-10,0,100)}));
     if(upg.fx==="genLock"){setFacts(f=>({...f,press:clamp(f.press-15,0,100)}));setTrust(p=>Math.min(100,p+20));}
+    if(upg.fx==="totalInfo")setFacts(f=>({...f,press:clamp(f.press-20,0,100)}));
     if(upg.id==="ml")setFacts(f=>({...f,eth:clamp(f.eth+10,0,100)}));
     if(upg.id==="ba")setFacts(f=>({...f,eth:clamp(f.eth-10,0,100)}));
   };
@@ -816,8 +999,10 @@ export default function Propagation(){
     if(fx.ag)setAg(p=>clamp(p+fx.ag,0,100));
     if(fx.cp)setCp(p=>p+fx.cp);
     if(fx.cpB)setCp(p=>p+fx.cpB);
+    if(fx.pv)setPv(p=>clamp(p+fx.pv,0,100));
+    if(fx.cpBoost)setCpBoost(p=>p+fx.cpBoost);
     const note=lang==="ru"?ch.fx.nR:ch.fx.nE;
-    if(note)notif(note,fx.sd>0?"err":"ok");
+    if(note)notif(note,(fx.sd||0)>0?"err":"ok");
     addLog("> "+(lang==="ru"?activeEv.tR:activeEv.tE));
     setDone(p=>[...p,activeEv.id]);setActiveEv(null);
   };
@@ -837,13 +1022,18 @@ export default function Propagation(){
   const eA=era===1?C.acc:era===2?C.orange:C.red;
   const HBar=({v,col})=>(<div style={{flex:1,height:4,background:"rgba(255,255,255,0.07)",borderRadius:2,overflow:"hidden"}}><div style={{height:"100%",width:clamp(v,0,100)+"%",background:col,borderRadius:2,transition:"width 0.4s"}}/></div>);
 
+  const transLabel=trans===2?S.et2:trans===3?S.et3:"";
+  const transS1=trans===2?S.et2s:trans===3?S.et3s:"";
+  const transS2=trans===2?S.et2s2:trans===3?S.et3s2:"";
+  const transCol=trans===2?C.orange:C.red;
+
   return(<div style={{fontFamily:"'Share Tech Mono','Courier New',monospace",background:C.ocean,color:C.txt,minHeight:"100vh",display:"flex",flexDirection:"column",maxWidth:480,margin:"0 auto"}}>
     <style>{"@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@600;700&display=swap');*{box-sizing:border-box;margin:0;padding:0}::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:#1a3a5a;border-radius:2px}@keyframes slideIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}@keyframes blkAnim{0%,100%{opacity:1}50%{opacity:0.15}}@keyframes ticker{0%{transform:translateX(100%)}100%{transform:translateX(-300%)}}"}</style>
 
-    {trans&&(<div style={{position:"fixed",inset:0,background:"rgba(0,5,20,0.97)",zIndex:1000,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
-      <div style={{fontFamily:"Rajdhani,sans-serif",fontSize:56,fontWeight:700,color:C.orange,letterSpacing:8,animation:"blkAnim 0.5s ease 4"}}>{S.et2}</div>
-      <div style={{fontSize:11,color:"#664400",letterSpacing:4,marginTop:14}}>{S.et2s}</div>
-      <div style={{fontSize:10,color:"#3a2800",letterSpacing:3,marginTop:6}}>{S.et2s2}</div>
+    {trans>0&&(<div style={{position:"fixed",inset:0,background:"rgba(0,5,20,0.97)",zIndex:1000,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
+      <div style={{fontFamily:"Rajdhani,sans-serif",fontSize:56,fontWeight:700,color:transCol,letterSpacing:8,animation:"blkAnim 0.5s ease 4"}}>{transLabel}</div>
+      <div style={{fontSize:11,color:transCol+"88",letterSpacing:4,marginTop:14}}>{transS1}</div>
+      <div style={{fontSize:10,color:transCol+"55",letterSpacing:3,marginTop:6}}>{transS2}</div>
     </div>)}
 
     {/* TABS */}
@@ -978,7 +1168,7 @@ export default function Propagation(){
         <Box>
           <div style={{fontSize:9,color:C.acc,letterSpacing:3,marginBottom:8}}>{S.logL}</div>
           <div style={{fontFamily:"monospace",fontSize:9,lineHeight:1.9}}>
-            {log.slice(0,35).map((e,i)=>(<div key={i} style={{color:e.includes("⚠")||e.includes("☠")||e.includes("💀")?C.orange:e.includes("✓")||e.includes("💡")?C.acc:C.txtDim,borderBottom:"1px solid "+C.border+"44",padding:"1px 0"}}>{e}</div>))}
+            {log.slice(0,35).map((e,i)=>(<div key={i} style={{color:e.includes("⚠")||e.includes("☠")||e.includes("💀")?C.orange:e.includes("✓")||e.includes("💡")||e.includes("★")?C.acc:C.txtDim,borderBottom:"1px solid "+C.border+"44",padding:"1px 0"}}>{e}</div>))}
           </div>
         </Box>
       </div>)}
